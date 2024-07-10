@@ -1,24 +1,24 @@
-import os
-import logging
-
 from bson import ObjectId
-from datetime import datetime
-from typing import Optional, Dict, Any
+from datetime import datetime  # type: ignore
+from typing import Optional, Dict, Any  # type: ignore
+from dotenv import load_dotenv, find_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from backend.db import get_db
 from backend.auth import utils
+from backend.config import settings
 from backend.auth.schemas import AuthUser
 from backend.auth.exceptions import InvalidCredentials
 from backend.auth.security import hash_password, check_password
-from backend.db import get_db
 
-db = get_db("virtual_assistant")
+
+db = get_db(settings.PROJECT_NAME)
 
 
 async def create_user(user_data: AuthUser) -> Dict[str, Any]:
     hashed_password = hash_password(user_data.password)
     created_user = {
-        "email": user_data.email,
+        "email": user_data.email.lower(),
         "password": hashed_password,
     }
     result = await db["users"].insert_one(created_user)
@@ -64,8 +64,8 @@ async def expire_refresh_token(refresh_token_uuid: str) -> None:
 
 
 async def authenticate_user(auth_data: AuthUser) -> Dict[str, Any]:
-    user = await get_user_by_email(auth_data.email)
+    user = await get_user_by_email(auth_data.email.lower())
     if not user or not check_password(auth_data.password, user["password"]):
-        raise InvalidCredentials("Invalid email or password")
+        raise InvalidCredentials()
 
     return user

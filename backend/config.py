@@ -45,7 +45,7 @@ class Config(BaseSettings):
     SENTRY_DSN: str | None = None
 
     APP_VERSION: str = "0.1.0"
-    PROJECT_NAME: str = "virtual-personal-assistant"
+    PROJECT_NAME: str = "VIRTUAL_PERSONAL_ASSISTANT"  # add your project name here
     SITE_DOMAIN: str = "localhost"
 
     # mongo db uri

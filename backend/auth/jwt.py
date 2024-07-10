@@ -17,16 +17,8 @@ def create_access_token(
     *,
     user: dict,
 ) -> str:
-    # if user.is_admin:
-    #     jwt_data = {
-    #         "sub": str(user.id),
-    #         "exp": datetime.utcnow() + expires_delta,
-    #         "is_admin": user.is_admin,
-    #     }
-    # else:
     jwt_data = {
         "email": str(user["email"]),
-        # "exp": datetime.utcnow() + expires_delta,
         "password": str(user["password"]),
     }
 

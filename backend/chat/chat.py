@@ -24,7 +24,7 @@ GPT3 = "gpt-3.5-turbo-0125"
 
 class Chat:
     def __init__(self, user_id: uuid.UUID):
-        self.db = get_db("virtual_assistant")
+        self.db = get_db(settings.PROJECT_NAME)
         self.db.chat_messages.create_index([("user_id", 1)])
         self.user_id = ObjectId(user_id)
         self.messages: List[ChatMessage] = []
@@ -140,15 +140,18 @@ class Chat:
         return list(messages) if messages else None
 
     async def get_message_history(self):
-        message_history: List[Union[HumanMessage, AIMessage, SystemMessage]] = []
+        message_history: List[Union[HumanMessage,
+                                    AIMessage, SystemMessage]] = []
         messages = await self.get_all_messages_roles()
         for message in messages:
             if message["role"] == "user":
-                message_history.append(HumanMessage(content=message["content"]))
+                message_history.append(
+                    HumanMessage(content=message["content"]))
             elif message["role"] == "assistant":
                 message_history.append(AIMessage(content=message["content"]))
             elif message["role"] == "system":
-                message_history.append(SystemMessage(content=message["content"]))
+                message_history.append(
+                    SystemMessage(content=message["content"]))
         return message_history
 
     async def task_chat(
@@ -211,7 +214,8 @@ class Chat:
                         None,
                     ):
                         tool_response = await selected_tool.invoke(tool_call.args)
-                        message_history.append(ToolMessage(content=tool_response, tool_name=tool_call.name))
+                        message_history.append(ToolMessage(
+                            content=tool_response, tool_name=tool_call.name))
                     else:
                         logger.error(f"Tool {tool_call.name} not found.")
                         break

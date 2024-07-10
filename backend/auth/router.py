@@ -36,6 +36,7 @@ async def auth_user(
     auth_data: AuthUser,
     response: Response,
 ) -> AccessTokenResponse:
+    logger.info(f"Authenticating user: {auth_data}")
     user = await service.authenticate_user(auth_data)
     refresh_token_value = await service.create_refresh_token(user_id=user["_id"])
 
