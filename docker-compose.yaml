@@ -1,0 +1,34 @@
+version: '0.1.0'
+
+services:
+  redis:
+    image: redis
+    command: redis-server --save 900 1 --save 300 10 --save 60 10000 --appendonly no
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_REDIS:-6379}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redisdata:/data
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - "8001:8001"
+    volumes:
+      - redisinsight-data:/db
+
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    ports:
+      - "${HOST_PORT_CHROMA:-8000}:8000"
+    volumes:
+      - chromadata:/chroma/chroma
+
+volumes:
+  redisdata:
+  redisinsight-data:
