@@ -5,6 +5,7 @@ import requests
 CHAT_START_URL = "http://localhost:9000/chat/start"
 ADD_MESSAGE_URL = "http://localhost:9000/chat"
 ALL_CHAT_URL = "http://localhost:9000/allChat"
+UPLOAD_FILE_URL = "http://localhost:9000/upload-pdf"
 
 
 def set_cookie_in_header(refresh_token):
@@ -69,8 +70,25 @@ def load_chat_messages(refresh_token):
     return []  # Ensure a list is returned
 
 
+def upload_file(uploaded_file, refresh_token):
+    try:
+        headers = set_cookie_in_header(refresh_token)
+        files = {'file': (uploaded_file.name,
+                          uploaded_file.getvalue(), 'application/pdf')}
+        response = requests.post(UPLOAD_FILE_URL, headers=headers, files=files)
+        response.raise_for_status()
+        return response
+    except requests.RequestException as e:
+        st.error(f"File upload request failed: {e}")
+        return None
+
+
 def chat_page():
     st.title("Chat")
+
+    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+    if uploaded_file is not None:
+        upload_file(uploaded_file, st.session_state.refresh_token)
 
     if 'refresh_token' not in st.session_state:
         st.error("Please log in to access the chat page.")
@@ -92,15 +110,18 @@ def chat_page():
         st.session_state.messages = chat_messages
 
     if chat_message := st.chat_input("Type your message here..."):
-        add_message_response = add_message_to_chat(st.session_state.refresh_token, chat_message)
+        add_message_response = add_message_to_chat(
+            st.session_state.refresh_token, chat_message)
         if add_message_response and add_message_response.status_code == 200:
-            st.session_state.messages.append({"role": "user", "message": chat_message})
+            st.session_state.messages.append(
+                {"role": "user", "message": chat_message})
             with st.chat_message("user"):
                 st.markdown(chat_message)
 
             assistant_message = add_message_response.json().get("content", "")
             with st.chat_message("assistant"):
                 st.markdown(assistant_message)
-            st.session_state.messages.append({"role": "assistant", "message": assistant_message})
+            st.session_state.messages.append(
+                {"role": "assistant", "message": assistant_message})
         else:
             st.error("Failed to send message!")

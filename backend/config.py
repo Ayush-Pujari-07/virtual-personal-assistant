@@ -71,6 +71,7 @@ class Config(BaseSettings):
 
     SERPER_API_KEY: str | None = None
     MAX_IMAGE_UPLOAD_SIZE: int = 1024 * 1024 * 10  # 10MB
+    MAX_FILE_UPLOAD_SIZE: int = 1024 * 1024 * 20  # 20MB
 
 
 settings = Config()

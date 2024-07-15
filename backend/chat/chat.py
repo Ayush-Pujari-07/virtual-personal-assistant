@@ -1,13 +1,10 @@
-import os
 import uuid  # type: ignore
 import logging
 
-from datetime import datetime, timezone  # type: ignore
-from motor.motor_asyncio import AsyncIOMotorClient
 from bson.objectid import ObjectId
+from datetime import datetime, timezone  # type: ignore
 
-from fastapi import Request
-from typing import Any, List, Union  # type: ignore
+from typing import List, Union  # type: ignore
 
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
@@ -44,9 +41,11 @@ class Chat:
         stream: bool = False
     ) -> dict:
         try:
+            user_name = await self.db.users.find_one({"_id": self.user_id}, {"name": 1})
+            user_data = await self.db.users.find_one({"_id": self.user_id}, {"pdf_data": 1})
             system_prompt = (
-                "You are a conversational AI assistant for Personal Assistance for fitness and health. You are designed to help users with their fitness and health goals. You are capable of providing personalized advice and support on a variety of topics, from nutrition to exercise to wellness. You are also capable of providing information on various fitness and health programs and products. You are designed to be a helpful and supportive resource for users in their fitness and health journey."
-            )
+                "You are a conversational AI assistant for Personal Assistance. You are designed to help user {user_name} who's data is '{user_data}' with their goals. You are capable of providing personalized advice and support on a variety of topics. You are also capable of providing information on various programs and products. You are designed to be a helpful and supportive resource for users in their journey. Dont give reply to anything thats not in the user data."
+            ).format(user_name=user_name['name'], user_data=user_data['pdf_data'])
 
             message = await self.add_system_message(
                 content=system_prompt,
@@ -90,7 +89,6 @@ class Chat:
         commit: bool = False,
     ):
         try:
-
             message = {
                 "user_id": self.user_id,
                 "role": role,
@@ -163,6 +161,7 @@ class Chat:
             await self.add_user_message(content=user_message)
 
             message_history = await self.get_message_history()
+            # context = qdrant.get_message()
             if stream:
                 async def response():
                     content = ""
